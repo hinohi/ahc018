@@ -146,8 +146,17 @@ fn main() {
     assert_eq!(input.n, N);
 
     let mut rng = Mcg128Xsl64::new(1);
-    let mut solver = Solver::new(&input.water, &input.house);
-    let ans = solver.solve(&mut rng);
+    let ans = {
+        let mut best = Vec::new();
+        for _ in 0..10 {
+            let mut solver = Solver::new(&input.water, &input.house);
+            let ans = solver.solve(&mut rng);
+            if best.is_empty() || best.len() > ans.len() {
+                best = ans;
+            }
+        }
+        best
+    };
 
     let mut judge = ExternalJudge::new(stdin);
     for p in ans {
