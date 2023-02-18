@@ -92,14 +92,14 @@ impl Solver {
 
 struct Input {
     n: usize,
-    _c: u32,
+    c: u32,
     water: Vec<(u32, u32)>,
     house: Vec<(u32, u32)>,
 }
 
 impl Input {
     fn new<R: BufRead>(stdin: &mut R) -> Input {
-        let (n, w, k, _c) = {
+        let (n, w, k, c) = {
             let mut buf = String::new();
             stdin.read_line(&mut buf).unwrap();
             let mut words = buf.split_whitespace();
@@ -131,12 +131,7 @@ impl Input {
                 words.next().unwrap().parse().unwrap(),
             ));
         }
-        Input {
-            n,
-            _c,
-            water,
-            house,
-        }
+        Input { n, c, water, house }
     }
 }
 
@@ -158,10 +153,22 @@ fn main() {
         best
     };
 
+    let p = match input.c {
+        1 => 71,
+        2 => 91,
+        4 => 119,
+        8 => 162,
+        16 => 218,
+        32 => 295,
+        64 => 417,
+        128 => 556,
+        _ => unreachable!(),
+    };
+
     let mut judge = ExternalJudge::new(stdin);
-    for p in ans {
+    for a in ans {
         loop {
-            let r = judge.dig(p.x() as usize, p.y() as usize, 100);
+            let r = judge.dig(a.x() as usize, a.y() as usize, p);
             // eprintln!("{:?} {:?}", p, r);
             match r {
                 DigResult::NotBreak => continue,
