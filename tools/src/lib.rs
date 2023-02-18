@@ -1,10 +1,9 @@
-use rand::{distributions::WeightedIndex, prelude::*};
-use noise::{NoiseFn, Perlin};
 use itertools::Itertools;
-use raqote::{Color, DrawOptions, DrawTarget, PathBuilder, Source, StrokeStyle};
-use palette::{Gradient, LinSrgb};
+use noise::{NoiseFn, Perlin};
 use once_cell::sync::Lazy;
-
+use palette::{Gradient, LinSrgb};
+use rand::{distributions::WeightedIndex, prelude::*};
+use raqote::{Color, DrawOptions, DrawTarget, PathBuilder, Source, StrokeStyle};
 
 #[derive(Clone, Debug)]
 pub struct UnionFind {
@@ -318,11 +317,11 @@ pub fn gen(
     })
 }
 
-
 pub struct Outcome {
     pub h: Vec<Vec<usize>>,
     pub water: Vec<Vec<bool>>,
     pub total_cost: u64,
+    pub ideally_cost: u64,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -339,6 +338,7 @@ pub struct Sim {
     sources: Vec<(usize, usize)>,
     sinks: Vec<(usize, usize)>,
     total_cost: u64,
+    ideally_cost: u64,
     uf: UnionFind,
 }
 
@@ -351,6 +351,7 @@ impl Sim {
             sources: input.sources.clone(),
             sinks: input.sinks.clone(),
             total_cost: 0,
+            ideally_cost: 0,
             uf: UnionFind::new(N * N),
         }
     }
@@ -374,6 +375,7 @@ impl Sim {
         self.total_cost += self.base_cost as u64 + op.p as u64;
 
         if self.h[op.r][op.c] == 0 {
+            self.ideally_cost += self.init_h[op.r][op.c] as u64 + self.base_cost as u64;
             for (dr, dc) in [(0, -1), (-1, 0), (0, 1), (1, 0)] {
                 let nr = op.r as isize + dr;
                 let nc = op.c as isize + dc;
@@ -422,6 +424,7 @@ impl Sim {
             h: self.h.clone(),
             water,
             total_cost: self.total_cost,
+            ideally_cost: self.ideally_cost,
         };
 
         let error = dry_sink.map(|i| format!("House {i} is unreachable from water sources"));

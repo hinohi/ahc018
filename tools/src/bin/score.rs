@@ -82,8 +82,8 @@ fn main() {
         });
 
     match exec(&mut p) {
-        Ok(outcome) => {
-            let s = format!("{} {}", num, outcome.total_cost);
+        Ok(o) => {
+            let s = format!("{} {} {}", num, o.total_cost, o.ideally_cost);
             println!("{}", s);
         }
         Err(err) => {
