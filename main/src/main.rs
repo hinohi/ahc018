@@ -111,26 +111,21 @@ impl Input {
             )
         };
 
-        let mut water = Vec::with_capacity(w);
-        for _ in 0..w {
-            let mut buf = String::new();
-            stdin.read_line(&mut buf).unwrap();
-            let mut words = buf.split_whitespace();
-            water.push((
-                words.next().unwrap().parse().unwrap(),
-                words.next().unwrap().parse().unwrap(),
-            ));
-        }
-        let mut house = Vec::with_capacity(k);
-        for _ in 0..k {
-            let mut buf = String::new();
-            stdin.read_line(&mut buf).unwrap();
-            let mut words = buf.split_whitespace();
-            house.push((
-                words.next().unwrap().parse().unwrap(),
-                words.next().unwrap().parse().unwrap(),
-            ));
-        }
+        let parse_v = |stdin: &mut R, n: usize| {
+            let mut v = Vec::with_capacity(n);
+            for _ in 0..n {
+                let mut buf = String::new();
+                stdin.read_line(&mut buf).unwrap();
+                let mut words = buf.split_whitespace();
+                v.push((
+                    words.next().unwrap().parse().unwrap(),
+                    words.next().unwrap().parse().unwrap(),
+                ));
+            }
+            v
+        };
+        let water = parse_v(stdin, w);
+        let house = parse_v(stdin, k);
         Input { n, c, water, house }
     }
 }
