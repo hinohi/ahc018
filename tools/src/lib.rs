@@ -1,20 +1,10 @@
 use rand::{distributions::WeightedIndex, prelude::*};
-
 use noise::{NoiseFn, Perlin};
-
 use itertools::Itertools;
-
 use raqote::{Color, DrawOptions, DrawTarget, PathBuilder, Source, StrokeStyle};
-
 use palette::{Gradient, LinSrgb};
-
 use once_cell::sync::Lazy;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, Clamped};
-
-#[cfg(target_arch = "wasm32")]
-use web_sys::{CanvasRenderingContext2d, ImageData};
 
 #[derive(Clone, Debug)]
 pub struct UnionFind {
@@ -328,21 +318,6 @@ pub fn gen(
     })
 }
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-pub fn generate(
-    seed: u64,
-    w: Option<usize>,
-    k: Option<usize>,
-    c: Option<usize>,
-) -> Result<String, JsError> {
-    let w = w.filter(|&w| w != 0);
-    let k = k.filter(|&k| k != 0);
-    let c = c.filter(|&c| c != 0);
-    gen(seed, w, k, c)
-        .map(|t| t.to_string())
-        .map_err(|e| JsError::new(&e))
-}
 
 pub struct Outcome {
     pub h: Vec<Vec<usize>>,
@@ -483,6 +458,7 @@ static H_PALETTE: Lazy<Vec<Color>> = Lazy::new(|| {
         })
         .collect()
 });
+
 const COL_DESTRUCTED: Lazy<Color> = Lazy::new(|| Color::new(255u8, 140u8, 140u8, 140u8));
 const COL_WATER: Lazy<Color> = Lazy::new(|| Color::new(255u8, 115u8, 204u8, 218u8));
 const COL_SOURCE: Lazy<Color> = Lazy::new(|| Color::new(255u8, 0u8, 6u8, 177u8));
@@ -504,7 +480,6 @@ fn cell_color(h: usize, water: bool) -> Color {
 }
 
 #[derive(Clone)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct DigInfo {
     pub x: usize,
     pub y: usize,
@@ -514,7 +489,6 @@ pub struct DigInfo {
     pub init_stur: usize,
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 pub struct VisResult {
     pub cost: u64,
     pub last_dig: Option<DigInfo>,
@@ -695,50 +669,6 @@ pub fn vis(data: &VisualizeData, turn: usize) -> (VisResult, DrawTarget) {
     )
 }
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-pub fn visualize(
-    ctx: &CanvasRenderingContext2d,
-    input: &str,
-    output: &str,
-    turn: usize,
-) -> Result<VisResult, JsError> {
-    let data = parse_visualize_data(input, output).map_err(|e| JsError::new(&e))?;
-    let (vis_res, img) = vis(&data, turn);
-
-    let width = img.width() as usize;
-    let height = img.height() as usize;
-    let img_data = img.into_inner();
-    let mut img_data_u8 = vec![0u8; width * height * 4];
-    for (i, col) in img_data.into_iter().enumerate() {
-        let (a, r, g, b) = (
-            (col >> 24) as u8,
-            (col >> 16 & 255) as u8,
-            (col >> 8 & 255) as u8,
-            (col & 255) as u8,
-        );
-        img_data_u8[4 * i + 0] = r;
-        img_data_u8[4 * i + 1] = g;
-        img_data_u8[4 * i + 2] = b;
-        img_data_u8[4 * i + 3] = a;
-    }
-
-    ctx.put_image_data(
-        &ImageData::new_with_u8_clamped_array_and_sh(
-            Clamped(&mut img_data_u8),
-            width as u32,
-            height as u32,
-        )
-        .map_err(|_| JsError::new("failed to create ImageData"))?,
-        0.0,
-        0.0,
-    )
-    .map_err(|_| JsError::new("failed to put ImageData"))?;
-
-    Ok(vis_res)
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 pub struct SolInfo {
     pub error: Option<String>,
     pub total_cost: u64,
@@ -773,11 +703,4 @@ pub fn validate_sol(data: &VisualizeData) -> SolInfo {
             max_turn: data.output.len(),
         }
     }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-pub fn get_sol_info(input: &str, output: &str) -> Result<SolInfo, JsError> {
-    let data = parse_visualize_data(input, output).map_err(|e| JsError::new(&e))?;
-    Ok(validate_sol(&data))
 }
