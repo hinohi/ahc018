@@ -2,7 +2,6 @@
 name = "noise"
 version = "0.8.2"
 edition = "2018"
-resolver = "2"
 
 [lib]
 name = "noise"
