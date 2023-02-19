@@ -1,13 +1,10 @@
-pub use self::{
-    cache::*, combiners::*, generators::*, modifiers::*, selectors::*, transformers::*,
-};
+pub use self::{cache::*, combiners::*, generators::*, modifiers::*, transformers::*};
 use alloc::boxed::Box;
 
 mod cache;
 mod combiners;
 mod generators;
 mod modifiers;
-mod selectors;
 mod transformers;
 
 /// Base trait for noise functions.

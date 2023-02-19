@@ -15,7 +15,6 @@ extern crate alloc;
 pub use crate::noise_fns::*;
 
 pub mod core;
-mod gradient;
 mod math;
 mod noise_fns;
 pub mod permutationtable;
