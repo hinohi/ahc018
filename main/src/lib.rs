@@ -1,3 +1,4 @@
+pub mod dsu;
 mod grid;
 pub mod judge;
 

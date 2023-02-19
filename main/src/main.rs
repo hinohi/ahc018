@@ -1,8 +1,8 @@
 use ahc018::{
+    dsu::Dsu,
     judge::{DigResult, ExternalJudge, Judge},
     Grid, Point, N,
 };
-use rand::seq::SliceRandom;
 use rand::Rng;
 use rand_pcg::Mcg128Xsl64;
 use std::io::{stdin, BufRead};
@@ -11,6 +11,17 @@ pub struct Solver {
     grid: Grid<bool>,
     water: Vec<Point>,
     house: Vec<Point>,
+}
+
+struct Node {
+    p: Point,
+    is_water: bool,
+}
+
+struct Edge {
+    i: usize,
+    j: usize,
+    l: u32,
 }
 
 impl Solver {
@@ -23,38 +34,54 @@ impl Solver {
     }
 
     pub fn solve(&mut self, rng: &mut Mcg128Xsl64) -> Vec<Point> {
+        let mut nodes = Vec::with_capacity(self.house.len() + self.water.len());
+        for &p in self.house.iter() {
+            nodes.push(Node { p, is_water: false });
+        }
+        for &p in self.water.iter() {
+            nodes.push(Node { p, is_water: true });
+        }
+        let mut water_id = Vec::with_capacity(self.water.len());
+        let mut edges = Vec::with_capacity(nodes.len() * (nodes.len() - 1) / 2);
+        for (i, n_i) in nodes.iter().enumerate() {
+            if n_i.is_water {
+                water_id.push(i);
+            }
+            for (j, n_j) in nodes.iter().enumerate().skip(i) {
+                if n_i.is_water && n_j.is_water {
+                    continue;
+                }
+                edges.push(Edge {
+                    i,
+                    j,
+                    l: n_i.p.manhattan(&n_j.p),
+                });
+            }
+        }
+        edges.sort_by(|a, b| a.l.cmp(&b.l));
+
+        let mut connects = Vec::new();
+        let mut uf = Dsu::new(nodes.len());
+        for edge in edges {
+            if uf.same(edge.i, edge.j) {
+                continue;
+            }
+            if water_id.iter().any(|&i| uf.same(i, edge.i))
+                && water_id.iter().any(|&i| uf.same(i, edge.j))
+            {
+                continue;
+            }
+            uf.merge(edge.i, edge.j);
+            connects.push(edge);
+        }
+
         let mut ans = Vec::new();
-        let mut house = self.house.clone();
-        house.shuffle(rng);
-        for &start in house.iter() {
-            let target = self.bfs(start);
+        for edge in connects {
+            let start = nodes[edge.i].p;
+            let target = nodes[edge.j].p;
             self.restore_path(start, target, &mut ans, rng);
         }
         ans
-    }
-
-    fn bfs(&self, start: Point) -> Point {
-        let mut grid = self.grid.clone();
-        let mut queue = std::collections::VecDeque::new();
-        queue.push_front(start);
-        while let Some(p) = queue.pop_front() {
-            grid[p] = true;
-            if self.water.iter().any(|&q| p == q) {
-                return p;
-            }
-            for nei in p.neighbors() {
-                // 既存の堀跡と繋がったらそこで終わり
-                if self.grid[nei] {
-                    return nei;
-                }
-                // 未採掘
-                if !grid[nei] {
-                    grid[nei] = true;
-                    queue.push_back(nei);
-                }
-            }
-        }
-        unreachable!()
     }
 
     fn restore_path(
