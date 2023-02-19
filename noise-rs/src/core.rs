@@ -1,9 +1,7 @@
 use crate::{
-    math::{
-        s_curve::Quintic,
-        vectors::{Vector, Vector2},
-    },
     permutationtable::NoiseHasher,
+    s_curve::Quintic,
+    vectors::{Vector, Vector2},
 };
 use core::f64;
 
