@@ -68,9 +68,3 @@ impl NoiseHasher for PermutationTable {
         self.values[index] as usize
     }
 }
-
-impl fmt::Debug for PermutationTable {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "PermutationTable {{ .. }}")
-    }
-}
