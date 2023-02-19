@@ -9,7 +9,6 @@
 //! let val = perlin.get([42.4, 37.7, 2.8]);
 //! ```
 
-#[macro_use]
 extern crate alloc;
 
 pub use crate::noise_fns::*;
@@ -18,4 +17,3 @@ pub mod core;
 mod math;
 mod noise_fns;
 pub mod permutationtable;
-pub mod utils;
