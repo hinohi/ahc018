@@ -61,17 +61,3 @@ impl NoiseFn<f64, 2> for Perlin {
         perlin_2d(point, &self.perm_table)
     }
 }
-
-/// 3-dimensional perlin noise
-impl NoiseFn<f64, 3> for Perlin {
-    fn get(&self, point: [f64; 3]) -> f64 {
-        perlin_3d(point, &self.perm_table)
-    }
-}
-
-/// 4-dimensional perlin noise
-impl NoiseFn<f64, 4> for Perlin {
-    fn get(&self, point: [f64; 4]) -> f64 {
-        perlin_4d(point, &self.perm_table)
-    }
-}

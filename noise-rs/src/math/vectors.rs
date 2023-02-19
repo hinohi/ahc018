@@ -2,11 +2,9 @@ use core::ops::{Add, Mul};
 use num_traits::real::Real;
 use num_traits::{One, Zero};
 
-pub use self::{vector2::*, vector3::*, vector4::*};
+pub use self::vector2::*;
 
 mod vector2;
-mod vector3;
-mod vector4;
 
 pub trait Vector<T, const DIM: usize> {
     // Create a vector with a single value broadcasted to all elements.
