@@ -1,8 +1,7 @@
-pub use self::{generators::*, modifiers::*};
+pub use self::generators::*;
 use alloc::boxed::Box;
 
 mod generators;
-mod modifiers;
 
 /// Base trait for noise functions.
 ///
