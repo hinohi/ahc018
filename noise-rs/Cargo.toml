@@ -1,0 +1,13 @@
+[package]
+name = "noise"
+version = "0.8.2"
+edition = "2018"
+resolver = "2"
+
+[lib]
+name = "noise"
+
+[dependencies]
+rand = { version = "0.8", default-features = false }
+rand_xorshift = "0.3"
+num-traits = "0.2"

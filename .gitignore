@@ -1,2 +1,5 @@
 /target
 in
+*.gcda
+*.gcno
+*.sha256
