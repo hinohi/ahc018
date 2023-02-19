@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use noise::{NoiseFn, Perlin};
+use noise::Perlin;
 use once_cell::sync::Lazy;
 use palette::{Gradient, LinSrgb};
 use rand::{distributions::WeightedIndex, prelude::*};

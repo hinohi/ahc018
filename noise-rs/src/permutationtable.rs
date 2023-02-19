@@ -1,4 +1,3 @@
-use core::fmt;
 use rand::{
     distributions::{Distribution, Standard},
     seq::SliceRandom,
