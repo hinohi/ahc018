@@ -1,9 +1,9 @@
 use ahc018::{
-    abs_diff,
     judge::{DigResult, ExternalJudge, Judge},
     Grid, Point, N,
 };
 use rand::seq::SliceRandom;
+use rand::Rng;
 use rand_pcg::Mcg128Xsl64;
 use std::io::{stdin, BufRead};
 
@@ -28,7 +28,7 @@ impl Solver {
         house.shuffle(rng);
         for &start in house.iter() {
             let target = self.bfs(start);
-            self.restore_path(start, target, &mut ans);
+            self.restore_path(start, target, &mut ans, rng);
         }
         ans
     }
@@ -57,7 +57,13 @@ impl Solver {
         unreachable!()
     }
 
-    fn restore_path(&mut self, start: Point, target: Point, path: &mut Vec<Point>) {
+    fn restore_path(
+        &mut self,
+        start: Point,
+        target: Point,
+        path: &mut Vec<Point>,
+        rng: &mut Mcg128Xsl64,
+    ) {
         use std::cmp::Ordering;
         let dx = match start.x().cmp(&target.x()) {
             Ordering::Less => 1,
@@ -69,23 +75,37 @@ impl Solver {
             Ordering::Equal => 0,
             Ordering::Greater => !0,
         };
-        let rx = abs_diff(start.y(), target.y()) + 1;
-        let ry = abs_diff(start.x(), target.x()) + 1;
-        let mut p = start;
-        if !self.grid[p] {
-            self.grid[p] = true;
-            path.push(p);
-        }
-        while p.x() != target.x() || p.y() != target.y() {
-            if abs_diff(p.x(), target.x()) * rx > abs_diff(p.y(), target.y()) * ry {
-                p = Point::new(p.x().wrapping_add(dx), p.y());
-            } else {
-                p = Point::new(p.x(), p.y().wrapping_add(dy));
-            }
-            if !self.grid[p] {
-                self.grid[p] = true;
+
+        let update = |p, grid: &mut Grid<bool>, path: &mut Vec<Point>| {
+            if !grid[p] {
+                grid[p] = true;
                 path.push(p);
             }
+        };
+
+        let go_x = |mut p: Point, grid: &mut Grid<bool>, path: &mut Vec<Point>| {
+            while p.x() != target.x() {
+                p = Point::new(p.x().wrapping_add(dx), p.y());
+                update(p, grid, &mut *path);
+            }
+            p
+        };
+        let go_y = |mut p: Point, grid: &mut Grid<bool>, path: &mut Vec<Point>| {
+            while p.y() != target.y() {
+                p = Point::new(p.x(), p.y().wrapping_add(dy));
+                update(p, grid, &mut *path);
+            }
+            p
+        };
+
+        let mut p = start;
+        update(p, &mut self.grid, path);
+        if rng.gen_bool(0.5) {
+            p = go_x(p, &mut self.grid, path);
+            go_y(p, &mut self.grid, path);
+        } else {
+            p = go_y(p, &mut self.grid, path);
+            go_x(p, &mut self.grid, path);
         }
     }
 }
@@ -138,7 +158,7 @@ fn main() {
     let mut rng = Mcg128Xsl64::new(1);
     let ans = {
         let mut best = Vec::new();
-        for _ in 0..10 {
+        for _ in 0..100 {
             let mut solver = Solver::new(&input.water, &input.house);
             let ans = solver.solve(&mut rng);
             if best.is_empty() || best.len() > ans.len() {
