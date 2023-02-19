@@ -28,7 +28,7 @@ fn calc_best_p(dist: &[i64], c: i64) -> i64 {
                 if d == 0 {
                     0
                 } else {
-                    (c + p) * ((i as i64 + p - 1) / p)
+                    (c + p) * ((i as i64 + p - 1) / p) * d
                 }
             })
             .sum::<i64>();
