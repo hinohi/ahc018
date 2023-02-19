@@ -9,4 +9,3 @@ name = "noise"
 [dependencies]
 rand = { version = "0.8", default-features = false }
 rand_xorshift = "0.3"
-num-traits = "0.2"

@@ -229,7 +229,6 @@ dependencies = [
 name = "noise"
 version = "0.8.2"
 dependencies = [
- "num-traits",
  "rand 0.8.5",
  "rand_xorshift",
 ]

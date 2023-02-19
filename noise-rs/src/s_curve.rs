@@ -1,6 +1,3 @@
-use crate::vectors::*;
-use num_traits::Float;
-
 /// Quintic Interpolation Trait
 ///
 /// Interpolates the provided value according to the quintic S-curve function
@@ -13,63 +10,10 @@ pub trait Quintic {
     fn map_quintic(&self) -> Self;
 }
 
-impl Quintic for f32 {
-    fn map_quintic(&self) -> Self {
-        let x = self.clamp(0.0, 1.0);
-
-        x * x * x * (x * (x * 6.0 - 15.0) + 10.0)
-    }
-}
-
 impl Quintic for f64 {
     fn map_quintic(&self) -> Self {
         let x = self.clamp(0.0, 1.0);
 
         x * x * x * (x * (x * 6.0 - 15.0) + 10.0)
-    }
-}
-
-impl<T> Quintic for [T; 2]
-where
-    T: Float + Quintic,
-{
-    fn map_quintic(&self) -> Self {
-        [self[0].map_quintic(), self[1].map_quintic()]
-    }
-}
-
-impl<T> Quintic for [T; 3]
-where
-    T: Float + Quintic,
-{
-    fn map_quintic(&self) -> Self {
-        [
-            self[0].map_quintic(),
-            self[1].map_quintic(),
-            self[2].map_quintic(),
-        ]
-    }
-}
-
-impl<T> Quintic for [T; 4]
-where
-    T: Float + Quintic,
-{
-    fn map_quintic(&self) -> Self {
-        [
-            self[0].map_quintic(),
-            self[1].map_quintic(),
-            self[2].map_quintic(),
-            self[3].map_quintic(),
-        ]
-    }
-}
-
-impl<T> Quintic for Vector2<T>
-where
-    T: Float + Quintic,
-{
-    fn map_quintic(&self) -> Self {
-        self.map(|x| x.map_quintic())
     }
 }

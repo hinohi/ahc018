@@ -4,4 +4,3 @@ pub mod core;
 mod noise_fns;
 pub mod permutationtable;
 mod s_curve;
-mod vectors;

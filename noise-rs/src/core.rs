@@ -1,8 +1,4 @@
-use crate::{
-    permutationtable::NoiseHasher,
-    s_curve::Quintic,
-    vectors::{Vector, Vector2},
-};
+use crate::{permutationtable::NoiseHasher, s_curve::Quintic};
 use core::f64;
 
 #[inline(always)]
@@ -17,13 +13,11 @@ where
     // 1/(sqrt(N)/2), N=2 -> sqrt(2)
     const SCALE_FACTOR: f64 = f64::consts::SQRT_2;
 
-    let point = Vector2::from(point);
+    let [x, y] = point;
 
     #[inline(always)]
     #[rustfmt::skip]
-    fn gradient_dot_v(perm: usize, point: Vector2<f64>) -> f64 {
-        let [x, y] = point.into_array();
-
+    fn gradient_dot_v(perm: usize, x: f64, y: f64) -> f64 {
         match perm & 0b11 {
             0 =>  x + y, // ( 1,  1)
             1 => -x + y, // (-1,  1)
@@ -33,17 +27,17 @@ where
         }
     }
 
-    let floored = point.floor();
-    let corner: Vector2<isize> = floored.numcast().unwrap();
-    let distance = point - floored;
+    let [fx, fy] = [x.floor(), y.floor()];
+    let [cx, cy] = [fx as isize, fy as isize];
+    let [dx, dy] = [x - fx, y - fy];
 
     macro_rules! call_gradient(
         ($x:expr, $y:expr) => {
             {
-                let offset = Vector2::new($x, $y);
                 gradient_dot_v(
-                    hasher.hash(&(corner + offset).into_array()),
-                    distance - offset.numcast().unwrap()
+                    hasher.hash(&[cx + $x, cy + $y]),
+                    dx - $x as f64,
+                    dy - $y as f64,
                 )
             }
         }
@@ -54,7 +48,8 @@ where
     let g01 = call_gradient!(0, 1);
     let g11 = call_gradient!(1, 1);
 
-    let [u, v] = distance.map_quintic().into_array();
+    let u = dx.map_quintic();
+    let v = dy.map_quintic();
 
     let unscaled_result = bilinear_interpolation(u, v, g00, g01, g10, g11);
 
