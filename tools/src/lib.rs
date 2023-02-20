@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use noise::{NoiseFn, Perlin};
+use noise::Perlin;
 use once_cell::sync::Lazy;
 use palette::{Gradient, LinSrgb};
 use rand::{distributions::WeightedIndex, prelude::*};
@@ -202,6 +202,11 @@ const MAX_K: usize = 10;
 const C_CHOICES: [usize; 8] = [1, 2, 4, 8, 16, 32, 64, 128];
 const MIN_H: usize = 10;
 const MAX_H: usize = 5000;
+
+#[test]
+fn test_gen() {
+    gen(1, None, None, None).unwrap();
+}
 
 pub fn gen(
     seed: u64,

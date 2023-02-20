@@ -1,6 +1,7 @@
 use ahc018::{
     dsu::Dsu,
     judge::{DigResult, ExternalJudge, Judge},
+    predict_h::gen_h,
     Grid, Point, N,
 };
 use rand::Rng;
@@ -183,6 +184,17 @@ fn main() {
     assert_eq!(input.n, N);
 
     let mut rng = Mcg128Xsl64::new(1);
+
+    let mut landmark = Vec::new();
+    for &(x, y) in input.water.iter() {
+        landmark.push((x as usize, y as usize));
+    }
+    for &(x, y) in input.house.iter() {
+        landmark.push((x as usize, y as usize));
+    }
+    for _ in 0..10 {
+        let h = gen_h(&mut rng, &landmark, 30.0);
+    }
     let ans = {
         let mut best = Vec::new();
         for _ in 0..100 {
