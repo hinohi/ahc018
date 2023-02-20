@@ -1,6 +1,7 @@
 pub mod dsu;
 mod grid;
 pub mod judge;
+pub mod predict_h;
 
 pub use crate::grid::*;
 
