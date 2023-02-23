@@ -1,7 +1,7 @@
 use ahc018::{
     judge::{DigResult, ExternalJudge, Judge},
     solver::Solver,
-    N,
+    SetMinMax, N,
 };
 use rand_pcg::Mcg128Xsl64;
 use std::io::{stdin, BufRead};
@@ -53,36 +53,28 @@ fn main() {
 
     let mut rng = Mcg128Xsl64::new(1);
 
-    let mut solver = Solver::new(&mut rng, &input.water, &input.house);
+    let mut solver = Solver::new(&mut rng, &input.water, &input.house, input.c);
     let ans = {
         let mut best = Vec::new();
+        let mut best_cost = std::u64::MAX;
         for _ in 0..10 {
             solver.reset();
-            let ans = solver.solve(&mut rng);
-            if best.is_empty() || best.len() > ans.len() {
+            let (ans, cost) = solver.solve(&mut rng);
+            if best_cost.setmin(cost) {
                 best = ans;
             }
         }
         best
     };
 
-    let p = match input.c {
-        1 => 37,
-        2 => 51,
-        4 => 71,
-        8 => 100,
-        16 => 138,
-        32 => 192,
-        64 => 264,
-        128 => 363,
-        _ => unreachable!(),
-    };
-
     let mut judge = ExternalJudge::new(stdin);
-    for a in ans {
+    for p in ans {
+        let mut s = 0;
         loop {
-            let r = judge.dig(a.x() as usize, a.y() as usize, p);
-            // eprintln!("{:?} {:?}", p, r);
+            let (power, cost) = solver.guess_power(p, s);
+            println!("# {} {}", power, cost);
+            let r = judge.dig(p.x() as usize, p.y() as usize, power);
+            s += power;
             match r {
                 DigResult::NotBreak => continue,
                 DigResult::Break => break,

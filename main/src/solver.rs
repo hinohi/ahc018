@@ -1,4 +1,4 @@
-use crate::{predict_h::gen_h, Grid, Point, SetMinMax};
+use crate::{predict_h::gen_h, Grid, Point, SetMinMax, N};
 use rand::seq::SliceRandom;
 use rand_pcg::Mcg128Xsl64;
 use std::{cmp::Ordering, collections::BinaryHeap};
@@ -7,7 +7,9 @@ pub struct Solver {
     grid: Grid<bool>,
     water: Vec<Point>,
     house: Vec<Point>,
-    guess_height: Grid<u32>,
+    c: u32,
+    h: Vec<Grid<u32>>,
+    guess_cost: Grid<u32>,
 }
 
 struct DState {
@@ -35,8 +37,40 @@ impl Ord for DState {
     }
 }
 
+fn guess_power(h: &[Grid<u32>], p: Point, c: u32, s: u32) -> (u32, u32) {
+    let v = h
+        .iter()
+        .filter_map(|h| if s < h[p] { Some(h[p] - s) } else { None })
+        .collect::<Vec<_>>();
+    if v.is_empty() {
+        return (100, 100 + c);
+    }
+    if v.len() == 1 {
+        return (v[0], v[0] + c);
+    }
+    let mut best = std::u32::MAX;
+    let mut best_power = 100;
+    for q in 10..=5000 {
+        let cost = v
+            .iter()
+            .map(|&d| ((c + q) * ((d + q - 1) / q)))
+            .sum::<u32>();
+        if best.setmin(cost) {
+            best_power = q;
+        } else {
+            return (best_power, best);
+        }
+    }
+    (best_power, best)
+}
+
 impl Solver {
-    pub fn new(rng: &mut Mcg128Xsl64, water: &[(u32, u32)], house: &[(u32, u32)]) -> Solver {
+    pub fn new(
+        rng: &mut Mcg128Xsl64,
+        water: &[(u32, u32)],
+        house: &[(u32, u32)],
+        c: u32,
+    ) -> Solver {
         let mut landmark = Vec::new();
         for &(x, y) in water.iter() {
             landmark.push((x as usize, y as usize));
@@ -44,16 +78,24 @@ impl Solver {
         for &(x, y) in house.iter() {
             landmark.push((x as usize, y as usize));
         }
-        let mut h = Grid::new(0);
+        let mut h = Vec::with_capacity(10);
         for _ in 0..10 {
-            let g = Grid::from_vec(gen_h(rng, &landmark, 30.0));
-            h.zip_map(&g, |h, g| *h += *g);
+            h.push(Grid::from_vec(gen_h(rng, &landmark, 30.0)));
+        }
+        let mut guess_cost = Grid::new(0);
+        for x in 0..N as u32 {
+            for y in 0..N as u32 {
+                let p = Point::new(x, y);
+                guess_cost[p] = guess_power(&h, p, c, 0).1;
+            }
         }
         Solver {
             grid: Grid::new(false),
             water: water.iter().map(|&(x, y)| Point::new(x, y)).collect(),
             house: house.iter().map(|&(x, y)| Point::new(x, y)).collect(),
-            guess_height: h,
+            c,
+            h,
+            guess_cost,
         }
     }
 
@@ -76,7 +118,7 @@ impl Solver {
                     prev[n] = Some(s.p);
                     return (n, prev);
                 }
-                let w = s.w + self.guess_height[n] as u64;
+                let w = s.w + self.guess_cost[n] as u64;
                 if dist[n].setmin(w) {
                     prev[n] = Some(s.p);
                     if self.water.iter().any(|p| *p == n) {
@@ -89,11 +131,12 @@ impl Solver {
         unreachable!()
     }
 
-    pub fn solve(&mut self, rng: &mut Mcg128Xsl64) -> Vec<Point> {
+    pub fn solve(&mut self, rng: &mut Mcg128Xsl64) -> (Vec<Point>, u64) {
         let mut house = self.house.clone();
         house.shuffle(rng);
 
         let mut ans = Vec::new();
+        let mut cost = 0;
         for start in house {
             let (target, prev) = self.dijkstra(start);
             let mut cur = target;
@@ -101,6 +144,7 @@ impl Solver {
                 if !self.grid[cur] {
                     self.grid[cur] = true;
                     ans.push(cur);
+                    cost += self.guess_cost[cur] as u64;
                 }
                 if let Some(nex) = prev[cur] {
                     cur = nex;
@@ -109,6 +153,10 @@ impl Solver {
                 }
             }
         }
-        ans
+        (ans, cost)
+    }
+
+    pub fn guess_power(&self, p: Point, s: u32) -> (u32, u32) {
+        guess_power(&self.h, p, self.c, s)
     }
 }
