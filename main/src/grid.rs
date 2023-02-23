@@ -55,6 +55,20 @@ impl<T: Copy> Grid<T> {
     }
 }
 
+impl<T> Grid<T> {
+    pub fn from_vec(data: Vec<T>) -> Grid<T> {
+        Grid { data }
+    }
+
+    pub fn zip_map<U>(&mut self, other: &Grid<U>, mut f: impl FnMut(&mut T, &U) -> ()) {
+        self.data
+            .iter_mut()
+            .zip(other.data.iter())
+            .map(|(t, u)| f(t, u))
+            .last();
+    }
+}
+
 impl<T> Index<Point> for Grid<T> {
     type Output = T;
 
